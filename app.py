@@ -11,7 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 
-
+#---------========-----------=====--------##---------========-----------=====--------##---------========-----------=====--------#
 
 arquivoExcel = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temperaturas.xlsx')  # Arquivo Excel onde serão salvos os dados
 
@@ -23,7 +23,7 @@ root.title("Temperature Catcher - São Paulo")
 #root.configure(background="white")
 root.minsize(200, 200)
 root.maxsize(500, 500)
-root.geometry("100x100+25+25")
+root.geometry("100x300+25+25")
 
 tk.Label(root, text = "Atualizar Previsão na planilha")
 
