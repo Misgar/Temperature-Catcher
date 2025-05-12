@@ -8,11 +8,11 @@ from datetime import datetime, time
 from tkinter import *
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
 import time
 
 
 
+arquivoExcel = "registro-temperaturas.xlsx"  # Arquivo Excel onde serão salvos os dados
 
 root = tk.Tk()
 pointer = 1
@@ -28,38 +28,60 @@ tk.Label(root, text = "Atualizar Previsão na planilha")
 
 curTime=datetime.now()
 
-
-tk.Label(root, text=curTime.date()).pack(side=tk.BOTTOM)
-
-
-tk.Label(root, text='Buscar dados de Temperatura').pack()
-searchButton=tk.Button(root,text="Buscar").pack()
+def buttonPressed():
+   temperatura = obter_temperatura_sao_paulo()
+   salvar_temperatura_em_excel(arquivoExcel, temperatura)
 
 
+
+# Função responsavel por retornar a temperatura no site CLima Tempo
 def obter_temperatura_sao_paulo():
     options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
+    options.add_argument("--headless") ## COM ESSE ARGUMENTO, PODEMOS RODAR SEM ABRIR O NAVEGADOR. OPCIONAL 
+    options.add_argument("--disable-gpu") ## COM ESSE ARGUMENTO, PODEMOS RODAR SEM ABRIR O NAVEGADOR. OPCIONAL 
+    options.add_argument("--no-sandbox") ## COM ESSE ARGUMENTO, PODEMOS RODAR SEM ABRIR O NAVEGADOR. OPCIONAL 
 
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(options=options) # AQUI DEFINIMOS AS OPÇ˜OES DEFINIDAS ACIMA DENTRO DO WEBDRIVER DO CHROME.
     try:
-        driver.get("https://www.google.com/search?q=previsao+do+tempo+em+sao+paulo")
+        driver.get("https://www.google.com/search?q=previsao+do+tempo+em+sao+paulo") 
         driver.get("https://www.climatempo.com.br/previsao-do-tempo/agora/cidade/558/saopaulo-sp")
 
+        # aqui aguardo 5 segundos o carregamento da pagina e busco o elemento pelo seletor CSS, com as classes da tag span
         temperatura = WebDriverWait(driver, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "span.-bold.-gray-dark-2.-font-55._margin-l-20._center"))).text
         
-
+        #retorno do valor da temperatura para usar n a função intermediaria (que chama as duas.)
         return temperatura
     finally:
         driver.quit()
 
-temp = obter_temperatura_sao_paulo()
 
 
-print(f"Temperatura em São Paulo: {temp}°C")
+def salvar_temperatura_em_excel(caminho_arquivo, temperatura):
+    # Abre a planilha existente
+    planilhaCaminho = load_workbook(caminho_arquivo)
+    planilhaAba = planilhaCaminho.active  # Usa a primeira aba (sheet)
 
+    # Encontra a próxima linha vazia
+    proxima_linha = planilhaCaminho.max_row + 1
+
+    # Insere a data/hora e a temperatura
+    planilhaAba.cell(row=proxima_linha, column=1, value=curTime) # CurTime esta sendo definida acima, e mostra a data e hora no bottom da interface
+    planilhaAba.cell(row=proxima_linha, column=2, value=temperatura)
+
+    # Salva o arquivo
+    planilhaAba.save(caminho_arquivo)
+    print(f"Temperatura {temperatura}°C salva na linha {proxima_linha}.")
+
+
+tk.Label(root, text=curTime).pack(side=tk.BOTTOM)
+
+
+tk.Label(root, text='Buscar dados de Temperatura').pack()
+searchButton=tk.Button(root,text="Buscar", command=buttonPressed).pack()
+
+
+# Funcão intermediaria. Crirei para que ao apertar o botão, ambas as funções sejam chamadas com seus respectivos parametos.
 
 root.mainloop()
 
